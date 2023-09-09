@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {{groupname}}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatapp</title>
+</head>
+
+<body>
+    <textarea name="" id="chat-log" cols="100" rows="20"></textarea><br>
+    <input type="text" id="chat-message-input" size="100"><br>
+    <input type="button" value="Send" id="chat-message-submit">
+    {{groupname|json_script:"group-name"}}
+
+    <script>
+        // we can run with help of property 
+        const groupName = JSON.parse(document.getElementById('group-name').textContent)
+        console.log(groupName)
+        var ws = new WebSocket(
+            'ws://'+window.location.host +'/ws/sc/'+ groupName +'/')
+        ws.onopen = function () {
+            console.log('websocket connection open...')
+            // ws.send('Hello, Message from client')
+        }
+        ws.onmessage = function (event) {
+            console.log('Message Received from Server..', event.data)
+            const data = JSON.parse(event.data)  //string to jsobject
+            console.log("check for parse data type", typeof (data))
+            console.log("Actual Data", data.msg)
+
+            document.querySelector('#chat-log').value += (data.msg + '\n')
+
+            // document.getElementById("ct").innerText = event.data
+
+        }
+        ws.onerror = function (event) {
+            console.log('Websocket Error Occured..', event)
+        }
+        ws.onclose = function (event) {
+            console.log('Connection closed...', event)
+        };
+        document.getElementById('chat-message-submit').onclick = function (event) {
+            const messageInputDom = document.getElementById('chat-message-input');  // Corrected
+            const message = messageInputDom.value;
+            ws.send(JSON.stringify({
+                'msg': message
+            }));
+            messageInputDom.value = '';
+        }
+
+    //we can run help with ws.addEventListener to send message and get message
+        // ws.addEventListener('open', (event) => {
+        //     console.log('websocket connection open...', event)
+        //     ws.send('Hi, Message from client')
+        // })
+    </script>
+</body>
+
+</html>
